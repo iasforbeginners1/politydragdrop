@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>संविधान क्विज: संघ और उसका क्षेत्र</title>
+    <style>
+        :root {
+            --primary-blue: #1a2a44;
+            --art1-color: #0d3b66;
+            --art2-color: #28a745;
+            --art3-color: #f39c12;
+            --art4-color: #6f42c1;
+            --bg-light: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #121e31;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        #game-container {
+            background-color: white;
+            width: 95%;
+            max-width: 650px;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+
+        .screen { display: none; }
+        .active { display: block; }
+
+        /* Typography */
+        h1 { color: var(--primary-blue); margin-bottom: 5px; }
+        p.sub-title { color: #666; margin-bottom: 20px; }
+
+        /* Buttons */
+        .btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: scale(1.05); background-color: #219150; }
+
+        /* Timer */
+        #timer-box {
+            font-size: 22px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 15px;
+            padding: 5px;
+            border-bottom: 2px solid #eee;
+        }
+
+        /* Options Area */
+        .options-pool {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f0f2f5;
+            border: 2px dashed #cbd5e0;
+            border-radius: 10px;
+            min-height: 120px;
+        }
+
+        .draggable {
+            background-color: #d1ff96;
+            border: 1px solid #8bc34a;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: grab;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+        .draggable:active { cursor: grabbing; }
+
+        /* Game Board */
+        .main-board {
+            border: 2px solid var(--primary-blue);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .board-header {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .article-row {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            background: #fff;
+        }
+
+        .art-label {
+            width: 80px;
+            height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .drop-zone {
+            flex: 1;
+            height: 70px;
+            margin-left: 15px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+
+        .drop-zone.drag-over { background-color: #e3f2fd; border-color: #2196f3; }
+        .drop-zone.correct { background-color: #d1ff96; border: none; }
+
+        /* Result */
+        .result-text { font-size: 24px; margin: 20px 0; font-weight: bold; }
+
+        /* Colors for Labels */
+        .bg-1 { background-color: var(--art1-color); }
+        .bg-2 { background-color: var(--art2-color); }
+        .bg-3 { background-color: var(--art3-color); }
+        .bg-4 { background-color: var(--art4-color); }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="intro-screen" class="screen active">
+        <h1>संघ और उसका क्षेत्र</h1>
+        <p class="sub-title">भाग 1: अनुच्छेद 1 से 4 तक</p>
+        <div style="text-align: left; background: #f9f9f9; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <strong>निर्देश:</strong>
+            <ul>
+                <li>ऊपर दिए गए विकल्पों को सही अनुच्छेद के सामने रखें।</li>
+                <li>सावधान! कुछ विकल्प भ्रमित करने के लिए दिए गए हैं।</li>
+                <li>आपके पास केवल <b>30 सेकंड</b> का समय है।</li>
+            </ul>
+        </div>
+        <button class="btn" onclick="startGame()">खेल शुरू करें</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div id="timer-box">समय शेष: <span id="timer">30</span>s</div>
+        
+        <div class="options-pool" id="options-pool">
+            <div class="draggable" draggable="true" id="opt1" data-match="1">भारत, राज्यों का एक संघ होगा</div>
+            <div class="draggable" draggable="true" id="opt2" data-match="2">नए राज्यों का प्रवेश या स्थापना</div>
+            <div class="draggable" draggable="true" id="opt3" data-match="3">राज्यों के क्षेत्रों, सीमाओं या नामों में परिवर्तन</div>
+            <div class="draggable" draggable="true" id="opt4" data-match="4">पहली और चौथी अनुसूची के संशोधन के लिए कानून</div>
+            
+            <div class="draggable" draggable="true" id="opt5" data-match="wrong">संविधान के प्रारंभ पर नागरिकता (अनु. 5)</div>
+            <div class="draggable" draggable="true" id="opt6" data-match="wrong">पाकिस्तान से भारत आए व्यक्तियों की नागरिकता</div>
+        </div>
+
+        <div class="main-board">
+            <div class="board-header">अनुच्छेद मिलान करें</div>
+            
+            <div class="article-row">
+                <div class="art-label bg-1">अनु.<br>1</div>
+                <div class="drop-zone" data-target="1"></div>
+            </div>
+
+            <div class="article-row">
+                <div class="art-label bg-2">अनु.<br>2</div>
+                <div class="drop-zone" data-target="2"></div>
+            </div>
+
+            <div class="article-row">
+                <div class="art-label bg-3">अनु.<br>3</div>
+                <div class="drop-zone" data-target="3"></div>
+            </div>
+
+            <div class="article-row">
+                <div class="art-label bg-4">अनु.<br>4</div>
+                <div class="drop-zone" data-target="4"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <h1 id="res-title"></h1>
+        <p class="result-text" id="res-body"></p>
+        <button class="btn" onclick="location.reload()">दोबारा खेलें</button>
+    </div>
+</div>
+
+<script>
+    let timeLeft = 30;
+    let timerInterval;
+    let correctCount = 0;
+
+    function startGame() {
+        document.getElementById('intro-screen').classList.remove('active');
+        document.getElementById('game-screen').classList.add('active');
+        
+        // Shuffle Options
+        const pool = document.getElementById('options-pool');
+        for (let i = pool.children.length; i >= 0; i--) {
+            pool.appendChild(pool.children[Math.random() * i | 0]);
+        }
+
+        startTimer();
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft;
+            if (timeLeft <= 0) {
+                endGame(false);
+            }
+        }, 1000);
+    }
+
+    const draggables = document.querySelectorAll('.draggable');
+    const dropZones = document.querySelectorAll('.drop-zone');
+
+    draggables.forEach(drag => {
+        drag.addEventListener('dragstart', () => {
+            drag.classList.add('dragging');
+        });
+        drag.addEventListener('dragend', () => {
+            drag.classList.remove('dragging');
+        });
+    });
+
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+        });
+
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('drag-over');
+        });
+
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            const draggingEl = document.querySelector('.dragging');
+            const matchId = draggingEl.getAttribute('data-match');
+            const targetId = zone.getAttribute('data-target');
+
+            if (matchId === targetId) {
+                zone.appendChild(draggingEl);
+                zone.classList.add('correct');
+                draggingEl.setAttribute('draggable', 'false');
+                draggingEl.style.cursor = 'default';
+                correctCount++;
+                if (correctCount === 4) endGame(true);
+            } else {
+                alert("गलत जवाब! सही अनुच्छेद चुनें।");
+            }
+        });
+    });
+
+    function endGame(isWin) {
+        clearInterval(timerInterval);
+        document.getElementById('game-screen').classList.remove('active');
+        document.getElementById('result-screen').classList.add('active');
+        
+        const title = document.getElementById('res-title');
+        const body = document.getElementById('res-body');
+
+        if (isWin) {
+            title.innerText = "शानदार जीत!";
+            title.style.color = "#27ae60";
+            body.innerText = "आपने " + (30 - timeLeft) + " सेकंड में सभी अनुच्छेद सही मिला दिए!";
+        } else {
+            title.innerText = "समय समाप्त!";
+            title.style.color = "#e74c3c";
+            body.innerText = "आप समय पर पूरा नहीं कर पाए। फिर से कोशिश करें!";
+        }
+    }
+</script>
+
+</body>
+</html>
